@@ -38,7 +38,7 @@ if __name__ == "__main__":
     pred_bbox = model.predict(img_tensor)
     time_p3 = time.time()
 
-    pred_bbox = postprocess_bbbox(pred_bbox, ANCHORS, STRIDES, XYSCALE)
+    pred_bbox = postprocess_bbbox(pred_bbox, anchors, STRIDES, XYSCALE)
     bboxes = postprocess_boxes(pred_bbox, original_image_size, input_size, 0.25)
     bboxes = nms(bboxes, 0.213, method='nms')
     time_p4 = time.time()
