@@ -12,9 +12,9 @@ data.py added Mosaic data argumentation, for imagenet classfication and object d
 
 this mosaic data argumentation is not exactly the same as original yolov4 implementation, but much close to that and I will work on that
 
-<p align="center"><img src="argumentation.jpg" width="640"\></p>
+<p align="center"><img src="argumentation.jpg" width="160"\></p>
 
-<p align="center"><img src="mosaic_argumentation.jpg" width="640"\></p>
+<p align="center"><img src="mosaic_argumentation.jpg" width="160"\></p>
 
 
 # Inference
