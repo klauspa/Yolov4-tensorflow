@@ -25,5 +25,5 @@ run:
 python detect.py --image ./kite.jpg
 ```
 demo:
-<p align="center"><img src="detect.jpg" width="640"\></p>
+<p align="center"><img src="detect.jpg" width="320"\></p>
 
