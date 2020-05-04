@@ -19,6 +19,7 @@ this mosaic data argumentation is not exactly the same as original yolov4 implem
 
 # Inference
 some postprocess code borrowed [here](https://github.com/hunglc007/tensorflow-yolov4-tflite) and will update own version
+
 run:
 ```bash
 python detect.py --image ./kite.jpg
