@@ -76,9 +76,9 @@ def make_leaky_convs(inputs, layer_num, filters, strides):
 
 #spp module
 def spp_module(inputs):
-    pool1 = tf.keras.layers.MaxPooling2D((5,5), strides=1, padding='same')(inputs)
+    pool1 = tf.keras.layers.MaxPooling2D((13,13), strides=1, padding='same')(inputs)
     pool2 = tf.keras.layers.MaxPooling2D((9,9), strides=1, padding='same')(inputs)
-    pool3 = tf.keras.layers.MaxPooling2D((13,13), strides=1, padding='same')(inputs)
+    pool3 = tf.keras.layers.MaxPooling2D((5,5), strides=1, padding='same')(inputs)
     out = tf.keras.layers.Concatenate()([pool1, pool2, pool3, inputs])
     return out
 
@@ -185,7 +185,7 @@ def yolo_body(inputs, classes):
     head1_out = tf.keras.layers.Conv2D(3*(4+1+classes), kernel_size=1, padding='same')(head1)
 
     head2_side = single_conv_leaky(intermediate_5, 256, 3, 2)
-    head2 = tf.keras.layers.Concatenate()([intermediate_4, head2_side])
+    head2 = tf.keras.layers.Concatenate()([head2_side, intermediate_4])
     head2 = make_leaky_convs(head2, 5, 256, 1)  
 
     intermediate_6 = head2
