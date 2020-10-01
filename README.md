@@ -1,7 +1,7 @@
-# Yolov4-tensorflow
-tensorflow implementation for Yolo v4
+# Yolo v4-tensorflow
+Tensorflow implementation for Yolo v4
 
-dependencies:
+Dependencies:-
 
 tensorflow2.x
 opencv
