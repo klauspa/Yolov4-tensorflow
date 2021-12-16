@@ -1,0 +1,153 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: pipeline-
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.6.2, pipelines.kubeflow.org/pipeline_compilation_time: '2021-12-16T17:39:24.231309',
+    pipelines.kubeflow.org/pipeline_spec: '{"name": "Pipeline"}'}
+  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.6.2}
+spec:
+  entrypoint: pipeline
+  templates:
+  - name: cv-interpret-worker
+    container:
+      args: []
+      command: [python, -m, torchx.examples.apps.lightning_classy_vision.interpret,
+        --load_path, /tmp/output/models/last.ckpt, --output_path, /tmp/output/interpret,
+        --data_path, /tmp/output/processed]
+      image: ghcr.io/pytorch/torchx:0.1.1
+      resources:
+        limits: {cpu: 1000m, memory: 1024M}
+        requests: {cpu: 1000m, memory: 1024M}
+      tty: true
+    metadata:
+      labels: {torchx.pytorch.org/version: 0.1.1, torchx.pytorch.org/app-name: cv-interpret,
+        torchx.pytorch.org/role-index: '0', torchx.pytorch.org/role-name: worker,
+        torchx.pytorch.org/replica-id: '0', pipelines.kubeflow.org/kfp_sdk_version: 1.6.2,
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp}
+      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "KFP wrapper
+          for TorchX component cv-interpret, role worker", "implementation": {"container":
+          {"command": ["python", "-m", "torchx.examples.apps.lightning_classy_vision.interpret",
+          "--load_path", "/tmp/output/models/last.ckpt", "--output_path", "/tmp/output/interpret",
+          "--data_path", "/tmp/output/processed"], "env": {}, "image": "ghcr.io/pytorch/torchx:0.1.1"}},
+          "name": "cv-interpret-worker", "outputs": []}', pipelines.kubeflow.org/component_ref: '{"digest":
+          "a21fbc29a0eb30707292ef6dda4ae8f46eed5ecbc7ec852f166d018d5b09fed4"}'}
+  - name: cv-trainer-worker
+    container:
+      args: []
+      command: [python, -m, torchx.examples.apps.lightning_classy_vision.train, --load_path,
+        '', --log_path, /tmp/output/logs, --epochs, '1', --output_path, /tmp/output/models,
+        --num_samples, '200', --data_path, /tmp/output/processed]
+      image: ghcr.io/pytorch/torchx:0.1.1
+      resources:
+        limits: {cpu: 1000m, memory: 4000M}
+        requests: {cpu: 1000m, memory: 4000M}
+      tty: true
+      volumeMounts:
+      - {mountPath: /tmp/, name: tmp}
+    outputs:
+      artifacts:
+      - {name: mlpipeline-ui-metadata, path: /tmp/outputs/mlpipeline-ui-metadata/data.json}
+    metadata:
+      labels: {torchx.pytorch.org/version: 0.1.1, torchx.pytorch.org/app-name: cv-trainer,
+        torchx.pytorch.org/role-index: '0', torchx.pytorch.org/role-name: worker,
+        torchx.pytorch.org/replica-id: '0', pipelines.kubeflow.org/kfp_sdk_version: 1.6.2,
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp}
+      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "KFP wrapper
+          for TorchX component cv-trainer, role worker", "implementation": {"container":
+          {"command": ["python", "-m", "torchx.examples.apps.lightning_classy_vision.train",
+          "--load_path", "", "--log_path", "/tmp/output/logs", "--epochs", "1", "--output_path",
+          "/tmp/output/models", "--num_samples", "200", "--data_path", "/tmp/output/processed"],
+          "env": {}, "image": "ghcr.io/pytorch/torchx:0.1.1"}}, "name": "cv-trainer-worker",
+          "outputs": [{"description": "ui metadata", "name": "mlpipeline-ui-metadata",
+          "type": "MLPipeline UI Metadata"}]}', pipelines.kubeflow.org/component_ref: '{"digest":
+          "24a9c860e919337e5ff14db25ae7703cf9b9b2eaeeeb1a6b982ae4be3e9a0e09"}'}
+    sidecars:
+    - command: [sh, -c, 'mkdir -p /tmp/outputs/mlpipeline-ui-metadata; echo ''{"outputs":
+          [{"type": "tensorboard", "source": "/tmp/output/logs/lightning_logs"}]}''
+          > /tmp/outputs/mlpipeline-ui-metadata/data.json']
+      image: alpine
+      name: ui-metadata-sidecar
+      mirrorVolumeMounts: true
+    volumes:
+    - emptyDir: {}
+      name: tmp
+  - name: datapreproc-worker
+    container:
+      args: []
+      command: [python, -m, torchx.examples.apps.datapreproc.datapreproc, --input_path,
+        /tmp/output/tiny-imagenet-200.zip, --output_path, /tmp/output/processed]
+      image: ghcr.io/pytorch/torchx:0.1.1
+      resources:
+        limits: {cpu: 1000m, memory: 1024M}
+        requests: {cpu: 1000m, memory: 1024M}
+      tty: true
+    metadata:
+      labels: {torchx.pytorch.org/version: 0.1.1, torchx.pytorch.org/app-name: datapreproc,
+        torchx.pytorch.org/role-index: '0', torchx.pytorch.org/role-name: worker,
+        torchx.pytorch.org/replica-id: '0', pipelines.kubeflow.org/kfp_sdk_version: 1.6.2,
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp}
+      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "KFP wrapper
+          for TorchX component datapreproc, role worker", "implementation": {"container":
+          {"command": ["python", "-m", "torchx.examples.apps.datapreproc.datapreproc",
+          "--input_path", "/tmp/output/tiny-imagenet-200.zip", "--output_path", "/tmp/output/processed"],
+          "env": {}, "image": "ghcr.io/pytorch/torchx:0.1.1"}}, "name": "datapreproc-worker",
+          "outputs": []}', pipelines.kubeflow.org/component_ref: '{"digest": "306620766906929f355231a5a37dfedf5faff9bf03d1b6f648fe8d6765633e78"}'}
+  - name: pipeline
+    dag:
+      tasks:
+      - name: cv-interpret-worker
+        template: cv-interpret-worker
+        dependencies: [cv-trainer-worker]
+      - name: cv-trainer-worker
+        template: cv-trainer-worker
+        dependencies: [datapreproc-worker]
+      - name: datapreproc-worker
+        template: datapreproc-worker
+        dependencies: [torchx-utils-copy-torchx-utils-copy]
+      - name: torchx-torchserve-worker
+        template: torchx-torchserve-worker
+        dependencies: [cv-trainer-worker]
+      - {name: torchx-utils-copy-torchx-utils-copy, template: torchx-utils-copy-torchx-utils-copy}
+  - name: torchx-torchserve-worker
+    container:
+      args: []
+      command: [python, -m, torchx.apps.serve.serve, --model_path, /tmp/output/models/model.mar,
+        --management_api, 'http://torchserve.default.svc.cluster.local:8081', --model_name,
+        tiny_image_net]
+      image: ghcr.io/pytorch/torchx:0.1.1
+      ports:
+      - {containerPort: 8222, name: model-download}
+      tty: true
+    metadata:
+      labels: {torchx.pytorch.org/version: 0.1.1, torchx.pytorch.org/app-name: torchx-torchserve,
+        torchx.pytorch.org/role-index: '0', torchx.pytorch.org/role-name: worker,
+        torchx.pytorch.org/replica-id: '0', pipelines.kubeflow.org/kfp_sdk_version: 1.6.2,
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp}
+      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "KFP wrapper
+          for TorchX component torchx-torchserve, role worker", "implementation":
+          {"container": {"command": ["python", "-m", "torchx.apps.serve.serve", "--model_path",
+          "/tmp/output/models/model.mar", "--management_api", "http://torchserve.default.svc.cluster.local:8081",
+          "--model_name", "tiny_image_net"], "env": {}, "image": "ghcr.io/pytorch/torchx:0.1.1"}},
+          "name": "torchx-torchserve-worker", "outputs": []}', pipelines.kubeflow.org/component_ref: '{"digest":
+          "7b971194b2a921896419135a1a663036634aa9a40ae15578e7fdb60f38109351"}'}
+  - name: torchx-utils-copy-torchx-utils-copy
+    container:
+      args: []
+      command: [python, -m, torchx.apps.utils.copy_main, --src, 'http://cs231n.stanford.edu/tiny-imagenet-200.zip',
+        --dst, /tmp/output/tiny-imagenet-200.zip]
+      image: ghcr.io/pytorch/torchx:0.1.1
+      tty: true
+    metadata:
+      labels: {torchx.pytorch.org/version: 0.1.1, torchx.pytorch.org/app-name: torchx-utils-copy,
+        torchx.pytorch.org/role-index: '0', torchx.pytorch.org/role-name: torchx-utils-copy,
+        torchx.pytorch.org/replica-id: '0', pipelines.kubeflow.org/kfp_sdk_version: 1.6.2,
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp}
+      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "KFP wrapper
+          for TorchX component torchx-utils-copy, role torchx-utils-copy", "implementation":
+          {"container": {"command": ["python", "-m", "torchx.apps.utils.copy_main",
+          "--src", "http://cs231n.stanford.edu/tiny-imagenet-200.zip", "--dst", "/tmp/output/tiny-imagenet-200.zip"],
+          "env": {}, "image": "ghcr.io/pytorch/torchx:0.1.1"}}, "name": "torchx-utils-copy-torchx-utils-copy",
+          "outputs": []}', pipelines.kubeflow.org/component_ref: '{"digest": "390cfaf8fe8483cb9182e4a8fcccf9fcac9fdfaaff594e7bdb2236dacc367bc7"}'}
+  arguments:
+    parameters: []
+  serviceAccountName: pipeline-runner
